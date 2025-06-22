@@ -1,0 +1,15 @@
+langchain
+python-dotenv
+ipykernel
+langchain_community
+langchain-text-splitters
+langchain-openai
+chromadb
+langchain_chroma
+langchain_pinecone
+langgraph
+pypdf
+faiss-cpu
+wikipedia
+beautifulsoup4
+langchain_groq
