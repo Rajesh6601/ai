@@ -78,5 +78,13 @@ class LoadStreamlitUI:
             
             ## USecase selection
             self.user_controls["selected_usecase"]=st.selectbox("Select Usecases",usecase_options)
+            
+            # Add Clear Chat button
+            st.markdown("---")
+            if st.button("🗑️ Clear Chat History", type="secondary"):
+                st.session_state.messages = []
+                import uuid
+                st.session_state.thread_id = str(uuid.uuid4())
+                st.rerun()
 
         return self.user_controls

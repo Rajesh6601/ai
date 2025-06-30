@@ -27,9 +27,11 @@ class GraphBuilder:
 
     def setup_graph(self, usecase: str):
         """
-        Sets up the graph for the selected use case.
+        Sets up the graph for the selected use case with memory support.
         """
         if usecase == "Basic Chatbot":
             self.basic_chatbot_build_graph()
 
-        return self.graph_builder.compile()
+        # Add memory saver for chat history persistence
+        memory = MemorySaver()
+        return self.graph_builder.compile(checkpointer=memory)
