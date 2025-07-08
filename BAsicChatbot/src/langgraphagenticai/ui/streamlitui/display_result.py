@@ -57,11 +57,11 @@ class DisplayResultStreamlit:
                 if type(message) == HumanMessage:
                     with st.chat_message("user"):
                         st.write(message.content)
-                elif type(message)==ToolMessage:
-                    with st.chat_message("ai"):
-                        st.write("Tool Call Start")
-                        st.write(message.content)
-                        st.write("Tool Call End")
+                # elif type(message)==ToolMessage:
+                #     with st.chat_message("ai"):
+                #         st.write("Tool Call Start")
+                #         st.write(message.content)
+                #         st.write("Tool Call End")
                 elif type(message)==AIMessage and message.content:
                     with st.chat_message("assistant"):
                         st.write(message.content)
