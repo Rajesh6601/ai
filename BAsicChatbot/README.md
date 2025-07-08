@@ -10,6 +10,8 @@ A sophisticated conversational AI chatbot built with LangGraph, Streamlit, and G
 - **Web Interface**: Clean and intuitive Streamlit-based UI
 - **Session Management**: Unique thread-based conversation sessions
 - **Real-time Streaming**: Live response streaming for better user experience
+- **Tool Integration**: Himalaya Enterprises search tool for company information
+- **Web Scraping**: Advanced content extraction from multiple web pages
 - **Configurable**: Easy configuration through INI files
 - **Extensible Architecture**: Modular design for easy feature additions
 
@@ -150,6 +152,19 @@ GROQ_MODEL_OPTIONS = llama3-8b-8192, llama3-70b-8192, gemma2-9b-it
 ### 5. State Management (`state.py`)
 - Defines conversation state structure
 - Manages message history with LangGraph's `add_messages`
+
+### 6. Himalaya Enterprises Tool (`tools/webloader_tool.py`)
+- **Multi-URL Web Scraping**: Loads content from multiple Himalaya Enterprises web pages
+- **Advanced Text Extraction**: Uses BeautifulSoup for clean content extraction
+- **Vector Search**: Creates searchable embeddings using OpenAI embeddings and Chroma
+- **Comprehensive Coverage**: Searches across About, Products, Contact, and Projects pages
+- **Fallback Mechanism**: Graceful handling when primary extraction fails
+
+#### Supported URLs:
+- `https://www.himalayaentp.com/index.php/about/` - Company information
+- `https://www.himalayaentp.com/index.php/product-2/` - Product details
+- `https://www.himalayaentp.com/index.php/contact/` - Contact information
+- `https://www.himalayaentp.com/index.php/projects/` - Project portfolio
 
 ## 🎨 Features in Detail
 
