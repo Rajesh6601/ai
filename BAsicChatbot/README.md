@@ -7,11 +7,13 @@ A sophisticated conversational AI chatbot built with LangGraph, Streamlit, and G
 - **Conversational AI**: Powered by Groq's high-performance language models
 - **Chat Memory**: Persistent conversation history within sessions
 - **Multiple Model Support**: Choose from various Groq models (llama3-8b-8192, llama3-70b-8192, gemma2-9b-it)
-- **Web Interface**: Clean and intuitive Streamlit-based UI
+- **Web Interface**: Clean and intuitive Streamlit-based UI with proper prompt-response flow
 - **Session Management**: Unique thread-based conversation sessions
-- **Real-time Streaming**: Live response streaming for better user experience
-- **Tool Integration**: Himalaya Enterprises search tool for company information
-- **Web Scraping**: Advanced content extraction from multiple web pages
+- **Real-time Processing**: Efficient message processing and display
+- **Tool Integration**: Himalaya Enterprises search tool for comprehensive company information
+- **Multi-URL Web Scraping**: Advanced content extraction from multiple web pages
+- **Vector Search**: Intelligent search across company content using embeddings
+- **Fallback Mechanisms**: Robust error handling and content extraction
 - **Configurable**: Easy configuration through INI files
 - **Extensible Architecture**: Modular design for easy feature additions
 
