@@ -24,6 +24,7 @@ class DisplayResultStreamlit:
             config = {"configurable": {"thread_id": thread_id}}
             
             # Stream the graph with memory support
+            ai_response = ""
             for event in graph.stream({'messages': [("user", user_message)]}, config):
                 print(event.values())
                 for value in event.values():
@@ -38,30 +39,39 @@ class DisplayResultStreamlit:
                             if hasattr(message, 'content') and message.content and hasattr(message, 'type'):
                                 # Check if it's an AI message (not user message)
                                 if message.type == 'ai' or str(type(message).__name__) == 'AIMessage':
-                                    # Display assistant response
-                                    with st.chat_message("assistant"):
-                                        st.write(message.content)
-                                    
-                                    # Add assistant message to session state
-                                    st.session_state.messages.append({
-                                        "role": "assistant", 
-                                        "content": message.content
-                                    })
+                                    ai_response = message.content
                                     break
+            
+            # Display the AI response only once after processing
+            if ai_response:
+                with st.chat_message("assistant"):
+                    st.write(ai_response)
+                
+                # Add assistant message to session state
+                st.session_state.messages.append({
+                    "role": "assistant", 
+                    "content": ai_response
+                })
 
-        elif usecase=="Chatbot With Web":
-             # Prepare state and invoke the graph
+        elif usecase == "Chatbot With Web":
+            # Prepare state and invoke the graph
             initial_state = {"messages": [user_message]}
             res = graph.invoke(initial_state)
+            
+            # Find the AI response from the messages
+            ai_response = ""
             for message in res['messages']:
-                if type(message) == HumanMessage:
-                    with st.chat_message("user"):
-                        st.write(message.content)
-                # elif type(message)==ToolMessage:
-                #     with st.chat_message("ai"):
-                #         st.write("Tool Call Start")
-                #         st.write(message.content)
-                #         st.write("Tool Call End")
-                elif type(message)==AIMessage and message.content:
-                    with st.chat_message("assistant"):
-                        st.write(message.content)
+                if type(message) == AIMessage and message.content:
+                    ai_response = message.content
+                    break
+            
+            # Display the AI response
+            if ai_response:
+                with st.chat_message("assistant"):
+                    st.write(ai_response)
+                
+                # Add assistant message to session state
+                st.session_state.messages.append({
+                    "role": "assistant", 
+                    "content": ai_response
+                })
