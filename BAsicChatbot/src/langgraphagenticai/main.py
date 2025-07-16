@@ -3,6 +3,11 @@ from src.langgraphagenticai.ui.streamlitui.loadui import LoadStreamlitUI
 from src.langgraphagenticai.LLMS.groqllm import GroqLLM
 from src.langgraphagenticai.graph.graph_builder import GraphBuilder
 from src.langgraphagenticai.ui.streamlitui.display_result import DisplayResultStreamlit
+from src.langgraphagenticai.utils.service_status import ServiceStatusChecker
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 def load_langgraph_agenticai_app():
     """
@@ -66,9 +71,47 @@ def load_langgraph_agenticai_app():
                  print(user_message)
                  DisplayResultStreamlit(usecase, graph, user_message, st.session_state.thread_id).display_result_on_ui()
             except Exception as e:
-                 st.error(f"Error: Graph set up failed- {e}")
+                 error_msg = str(e)
+                 if "503" in error_msg or "Service unavailable" in error_msg:
+                     st.error("🚨 **Groq API Service Unavailable**")
+                     st.warning("The Groq API service is temporarily down. This is a service-side issue, not a problem with your code.")
+                     
+                     # Add service status check button
+                     col1, col2 = st.columns(2)
+                     with col1:
+                         if st.button("🔄 Check Service Status", key="inner_status_check"):
+                             ServiceStatusChecker.display_service_status()
+                     with col2:
+                         if st.button("📊 View Full Status Page", key="inner_status_page"):
+                             st.markdown("[Open Groq Status Page](https://groqstatus.com/)")
+                             
+                     st.info("**What you can do:**")
+                     st.info("• Wait a few minutes and try again")
+                     st.info("• Check service status at: https://groqstatus.com/")
+                     st.info("• The Groq team is working on a fix")
+                 else:
+                     st.error(f"Error: Graph set up failed- {e}")
                  return
 
         except Exception as e:
-             st.error(f"Error: Graph set up failed- {e}")
+             error_msg = str(e)
+             if "503" in error_msg or "Service unavailable" in error_msg:
+                 st.error("🚨 **Groq API Service Unavailable**")
+                 st.warning("The Groq API service is temporarily down. This is a service-side issue, not a problem with your code.")
+                 
+                 # Add service status check button
+                 col1, col2 = st.columns(2)
+                 with col1:
+                     if st.button("🔄 Check Service Status"):
+                         ServiceStatusChecker.display_service_status()
+                 with col2:
+                     if st.button("📊 View Full Status Page"):
+                         st.markdown("[Open Groq Status Page](https://groqstatus.com/)")
+                         
+                 st.info("**What you can do:**")
+                 st.info("• Wait a few minutes and try again")
+                 st.info("• Check service status at: https://groqstatus.com/")
+                 st.info("• The Groq team is working on a fix")
+             else:
+                 st.error(f"Error: Graph set up failed- {e}")
              return

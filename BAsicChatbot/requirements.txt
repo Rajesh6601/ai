@@ -11,3 +11,5 @@ chromadb
 langchain-text-splitters
 beautifulsoup4
 requests
+pypdf
+python-dotenv
