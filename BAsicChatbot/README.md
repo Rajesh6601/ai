@@ -93,12 +93,19 @@ BAsicChatbot/
    ```bash
    GROQ_API_KEY=your-groq-api-key-here
    OPENAI_API_KEY=your-openai-api-key-here
+   
+   # LangSmith Configuration (Optional - for debugging and monitoring)
+   LANGSMITH_API_KEY=your-langsmith-api-key-here
+   LANGCHAIN_TRACING_V2=true
+   LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+   LANGCHAIN_PROJECT=himalaya-enterprises-chatbot
    ```
    
    Or set them as environment variables:
    ```bash
    export GROQ_API_KEY="your-groq-api-key-here"
    export OPENAI_API_KEY="your-openai-api-key-here"
+   export LANGSMITH_API_KEY="your-langsmith-api-key-here"
    ```
 
 ## 🎯 Usage
@@ -258,6 +265,62 @@ GROQ_MODEL_OPTIONS = llama3-8b-8192, llama3-70b-8192, gemma2-9b-it
 - **Test Scripts**: Comprehensive testing tools for functionality verification
 - **Debug Support**: Enhanced logging and debugging capabilities
 - **Configuration Management**: Improved environment variable handling
+
+### 🆕 LangSmith Integration
+- **Comprehensive Tracing**: All major components are traced for debugging
+- **Performance Monitoring**: Track response times and system performance
+- **Error Analytics**: Detailed error tracking and analysis
+- **Dashboard Access**: Real-time monitoring through LangSmith dashboard
+- **Cost Tracking**: Monitor API usage and costs across all services
+
+## 🔍 LangSmith Debugging & Monitoring
+
+### Overview
+LangSmith provides comprehensive debugging and monitoring capabilities for the Himalaya Enterprises chatbot. This enables you to:
+- **Track Performance**: Monitor response times and system health
+- **Debug Issues**: Get detailed traces of all operations
+- **Analyze Usage**: Understand user interaction patterns
+- **Monitor Costs**: Track API usage across all services
+
+### Setup
+1. **Get LangSmith API Key**:
+   - Visit [LangSmith](https://smith.langchain.com)
+   - Sign up or log in
+   - Create an API key in Settings
+
+2. **Configure Environment**:
+   ```bash
+   LANGSMITH_API_KEY=your-langsmith-api-key-here
+   LANGCHAIN_TRACING_V2=true
+   LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+   LANGCHAIN_PROJECT=himalaya-enterprises-chatbot
+   ```
+
+3. **Verify Setup**:
+   ```bash
+   python test_langsmith_comprehensive.py
+   ```
+
+### Dashboard Access
+- **Main Dashboard**: [LangSmith Project](https://smith.langchain.com/o/default/projects/p/himalaya-enterprises-chatbot)
+- **Traces**: View all application traces and debugging info
+- **Analytics**: Usage statistics and performance metrics
+
+### Traced Components
+- ✅ WebLoader Tool (LinkedIn, Web, Documents)
+- ✅ Graph Builder (Workflow construction)
+- ✅ LLM Model (Response generation)
+- ✅ Chatbot Nodes (Message processing)
+- ✅ UI Components (Display and interaction)
+- ✅ Main Application (End-to-end flow)
+
+### Monitoring Features
+- **Real-time Tracing**: See requests as they happen
+- **Performance Metrics**: Response times, token usage
+- **Error Tracking**: Detailed error context and resolution
+- **Usage Analytics**: User interaction patterns and trends
+
+For detailed LangSmith setup and usage, see [LANGSMITH_GUIDE.md](LANGSMITH_GUIDE.md).
 
 ## 🔍 Troubleshooting
 

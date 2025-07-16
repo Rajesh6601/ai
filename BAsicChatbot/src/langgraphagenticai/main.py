@@ -4,11 +4,19 @@ from src.langgraphagenticai.LLMS.groqllm import GroqLLM
 from src.langgraphagenticai.graph.graph_builder import GraphBuilder
 from src.langgraphagenticai.ui.streamlitui.display_result import DisplayResultStreamlit
 from src.langgraphagenticai.utils.service_status import ServiceStatusChecker
+from src.langgraphagenticai.utils.langsmith_config import setup_langsmith
+from src.langgraphagenticai.utils.langsmith_monitor import LangSmithMonitor
 from dotenv import load_dotenv
+from langsmith import traceable
 
 # Load environment variables
 load_dotenv()
 
+# Initialize LangSmith for debugging and monitoring
+langsmith_enabled = setup_langsmith()
+monitor = LangSmithMonitor()
+
+@traceable(name="langgraph_agenticai_app")
 def load_langgraph_agenticai_app():
     """
     Loads and runs the LangGraph AgenticAI application with Streamlit UI.
@@ -32,6 +40,28 @@ def load_langgraph_agenticai_app():
     if not user_input:
         st.error("Error: Failed to load user input from the UI.")
         return
+    
+    # Add LangSmith monitoring sidebar
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown("### 🔍 LangSmith Monitoring")
+        
+        if langsmith_enabled:
+            st.success("✅ LangSmith Enabled")
+            config = monitor.get_monitoring_config()
+            
+            # Dashboard links
+            st.markdown(f"🔗 [Dashboard]({config['dashboard_url']})")
+            st.markdown(f"📈 [Traces]({config['traces_url']})")
+            st.markdown(f"📊 [Analytics]({config['analytics_url']})")
+            
+            # Show traced components
+            with st.expander("📋 Traced Components"):
+                for component in config['traced_components']:
+                    st.write(f"• {component}")
+        else:
+            st.warning("⚠️ LangSmith Not Configured")
+            st.info("Add LANGSMITH_API_KEY to .env file to enable monitoring")
     
     # Display chat history
     for message in st.session_state.messages:

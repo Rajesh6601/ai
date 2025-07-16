@@ -5,6 +5,7 @@ from src.langgraphagenticai.nodes.basic_chatbot_node import BasicChatbotNode
 from src.langgraphagenticai.tools.search_tool import get_tools,create_tool_node
 from langgraph.prebuilt import tools_condition,ToolNode
 from src.langgraphagenticai.nodes.chatbot_with_Tool_node import ChatbotWithToolNode
+from langsmith import traceable
 
 
 class GraphBuilder:
@@ -12,6 +13,7 @@ class GraphBuilder:
         self.llm=model
         self.graph_builder=StateGraph(State)
 
+    @traceable(name="basic_chatbot_build_graph")
     def basic_chatbot_build_graph(self):
         """
         Builds a basic chatbot graph using LangGraph.
@@ -26,6 +28,7 @@ class GraphBuilder:
         self.graph_builder.add_edge(START,"chatbot")
         self.graph_builder.add_edge("chatbot",END)
 
+    @traceable(name="chatbot_with_tools_build_graph")
     def chatbot_with_tools_build_graph(self):
         """
         Builds an advanced chatbot graph with tool integration.
@@ -53,6 +56,7 @@ class GraphBuilder:
         self.graph_builder.add_conditional_edges("chatbot",tools_condition)
         self.graph_builder.add_edge("tools","chatbot")
 
+    @traceable(name="setup_graph")
     def setup_graph(self, usecase: str):
         """
         Sets up the graph for the selected use case.

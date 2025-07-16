@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import requests
 from dotenv import load_dotenv
 from docx import Document as DocxDocument
+from langsmith import traceable
 
 # Load environment variables from .env file
 load_dotenv()
@@ -39,6 +40,7 @@ class HimalayaWebLoaderTool(BaseTool):
         super().__init__(**kwargs)
         self._initialize_vectorstore()
     
+    @traceable(name="extract_docx_content")
     def _extract_docx_content(self, file_path):
         """Extract text content from a Word document."""
         try:
@@ -64,6 +66,7 @@ class HimalayaWebLoaderTool(BaseTool):
             print(f"Error extracting content from {file_path}: {e}")
             return None
 
+    @traceable(name="extract_web_content")
     def _extract_text_content(self, url):
         """Extract clean text content from a URL using BeautifulSoup."""
         try:
@@ -369,6 +372,7 @@ class HimalayaWebLoaderTool(BaseTool):
             self._vectorstore = None
             self._retriever = None
     
+    @traceable(name="himalaya_search")
     def _run(self, query: str) -> str:
         """Execute the search for Himalaya Enterprises information."""
         if not self._retriever:

@@ -1,6 +1,7 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage,AIMessage,ToolMessage
 import json
+from langsmith import traceable
 
 
 class DisplayResultStreamlit:
@@ -10,6 +11,7 @@ class DisplayResultStreamlit:
         self.user_message = user_message
         self.thread_id = thread_id
 
+    @traceable(name="display_result_ui")
     def display_result_on_ui(self):
         usecase = self.usecase
         graph = self.graph

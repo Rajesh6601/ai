@@ -1,4 +1,5 @@
 from src.langgraphagenticai.state.state import State
+from langsmith import traceable
 
 class BasicChatbotNode:
     """
@@ -7,6 +8,7 @@ class BasicChatbotNode:
     def __init__(self,model):
         self.llm=model
 
+    @traceable(name="basic_chatbot_process")
     def process(self,state:State)->dict:
         """
         Processes the input state and generates a chatbot response.

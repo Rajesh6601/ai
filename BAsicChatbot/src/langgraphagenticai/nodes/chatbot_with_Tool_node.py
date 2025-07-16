@@ -1,4 +1,5 @@
 from src.langgraphagenticai.state.state import State
+from langsmith import traceable
 
 class ChatbotWithToolNode:
     """
@@ -7,6 +8,7 @@ class ChatbotWithToolNode:
     def __init__(self,model):
         self.llm = model
 
+    @traceable(name="chatbot_with_tools_process")
     def process(self, state: State) -> dict:
         """
         Processes the input state and generates a response with tool integration.
@@ -20,6 +22,7 @@ class ChatbotWithToolNode:
         return {"messages": [llm_response, tools_response]}
     
 
+    @traceable(name="create_chatbot_with_tools")
     def create_chatbot(self, tools):
         """
         Returns a chatbot node function.

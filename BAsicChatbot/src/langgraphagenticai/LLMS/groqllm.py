@@ -2,11 +2,13 @@ import os
 import time
 import streamlit as st
 from langchain_groq import ChatGroq
+from langsmith import traceable
 
 class GroqLLM:
     def __init__(self,user_contols_input):
         self.user_controls_input=user_contols_input
 
+    @traceable(name="get_llm_model")
     def get_llm_model(self, max_retries=3, retry_delay=5):
         """
         Get LLM model with retry logic for service unavailable errors
