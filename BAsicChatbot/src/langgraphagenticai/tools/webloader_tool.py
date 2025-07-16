@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, PrivateAttr
 from bs4 import BeautifulSoup
 import requests
 from dotenv import load_dotenv
+from docx import Document as DocxDocument
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,9 +25,9 @@ class HimalayaWebLoaderTool(BaseTool):
     
     name: str = "himalaya_enterprises_search"
     description: str = (
-        "Search for information about Himalaya Enterprises from their official website. "
+        "Search for information about Himalaya Enterprises from their official website, LinkedIn profile, and machinery database. "
         "Use this tool when users ask about Himalaya Enterprises, their services, products, "
-        "projects, location, contact information, or any company-specific details."
+        "projects, location, contact information, machinery/equipment lists, machine descriptions, quantities, or any company-specific details."
     )
     args_schema: Type[BaseModel] = HimalayaSearchInput
     
@@ -38,6 +39,31 @@ class HimalayaWebLoaderTool(BaseTool):
         super().__init__(**kwargs)
         self._initialize_vectorstore()
     
+    def _extract_docx_content(self, file_path):
+        """Extract text content from a Word document."""
+        try:
+            doc = DocxDocument(file_path)
+            text_content = []
+            
+            for paragraph in doc.paragraphs:
+                if paragraph.text.strip():
+                    text_content.append(paragraph.text.strip())
+            
+            # Also extract text from tables
+            for table in doc.tables:
+                for row in table.rows:
+                    row_text = []
+                    for cell in row.cells:
+                        if cell.text.strip():
+                            row_text.append(cell.text.strip())
+                    if row_text:
+                        text_content.append(" | ".join(row_text))
+            
+            return "\n".join(text_content)
+        except Exception as e:
+            print(f"Error extracting content from {file_path}: {e}")
+            return None
+
     def _extract_text_content(self, url):
         """Extract clean text content from a URL using BeautifulSoup."""
         try:
@@ -267,6 +293,8 @@ class HimalayaWebLoaderTool(BaseTool):
             ]
             
             all_texts = []
+            
+            # Load web content
             for url in urls:
                 print(f"Loading content from: {url}")
                 
@@ -286,10 +314,27 @@ class HimalayaWebLoaderTool(BaseTool):
                         print(f"Sample content: {data[0].page_content[:200]}...")
                         all_texts.extend([{"page_content": doc.page_content, "metadata": doc.metadata} for doc in data])
             
+            # Load machines document
+            machines_doc_path = os.path.join(os.path.dirname(__file__), "..", "documents", "list-of-machines.docx")
+            if os.path.exists(machines_doc_path):
+                print(f"Loading machines document from: {machines_doc_path}")
+                machines_content = self._extract_docx_content(machines_doc_path)
+                if machines_content:
+                    print(f"Successfully extracted machines content")
+                    print(f"Sample content: {machines_content[:200]}...")
+                    all_texts.append({
+                        "page_content": machines_content, 
+                        "metadata": {"source": "machines_document", "type": "machines_list"}
+                    })
+                else:
+                    print("Failed to extract content from machines document")
+            else:
+                print(f"Machines document not found at: {machines_doc_path}")
+            
             print(f"Total documents loaded: {len(all_texts)}")
             
             if not all_texts:
-                raise Exception("No content could be loaded from any URL")
+                raise Exception("No content could be loaded from any source")
             
             # Create Document objects for text splitting
             from langchain.schema import Document
@@ -334,8 +379,13 @@ class HimalayaWebLoaderTool(BaseTool):
             linkedin_post_keywords = ['latest post', 'recent post', 'latest linkedin post', 'recent linkedin post', 
                                     'latest update', 'recent update', 'new post', 'current post', 'recent activity']
             
+            # Check if this is a machines query
+            machine_keywords = ['machine', 'machinery', 'equipment', 'list of machines', 'machine names', 
+                              'machine description', 'quantity', 'machines used', 'equipment list']
+            
             query_lower = query.lower()
             is_linkedin_post_query = any(keyword in query_lower for keyword in linkedin_post_keywords)
+            is_machine_query = any(keyword in query_lower for keyword in machine_keywords)
             
             if is_linkedin_post_query:
                 # Try to get fresh LinkedIn posts information
@@ -355,8 +405,32 @@ Additional Context:
 
 Note: For the most current LinkedIn posts, please visit the profile directly at: {linkedin_url}"""
             
+            elif is_machine_query:
+                # Enhanced retrieval for machine queries
+                docs = self._retriever.invoke(query)
+                
+                if not docs:
+                    return "No machine information found for your query."
+                
+                # Filter for machine-related content
+                machine_docs = [doc for doc in docs if 'machines' in doc.metadata.get('type', '').lower() or 
+                               any(keyword in doc.page_content.lower() for keyword in machine_keywords)]
+                
+                if machine_docs:
+                    machine_content = "\n\n".join([doc.page_content for doc in machine_docs])
+                    other_content = "\n\n".join([doc.page_content for doc in docs if doc not in machine_docs])
+                    
+                    result = f"Based on Himalaya Enterprises machinery information:\n\n{machine_content}"
+                    if other_content:
+                        result += f"\n\nAdditional related information:\n\n{other_content}"
+                    return result
+                else:
+                    # Regular retrieval if no specific machine content found
+                    combined_content = "\n\n".join([doc.page_content for doc in docs])
+                    return f"Based on Himalaya Enterprises information:\n\n{combined_content}"
+            
             else:
-                # Regular retrieval for non-posts queries
+                # Regular retrieval for non-posts and non-machine queries
                 docs = self._retriever.invoke(query)
                 
                 if not docs:
