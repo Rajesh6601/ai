@@ -56,6 +56,7 @@ class LoadStreamlitUI:
                 llm_options = ["Groq"]
                 usecase_options = ["Basic Chatbot"]
 
+
             # LLM selection
             self.user_controls["selected_llm"] = st.selectbox("Select LLM", llm_options)
 
@@ -69,22 +70,25 @@ class LoadStreamlitUI:
                 except Exception as e:
                     st.error(f"Error loading model options: {e}")
                     model_options = ["llama3-8b-8192", "llama3-70b-8192", "gemma2-9b-it"]
-                
                 self.user_controls["selected_groq_model"] = st.selectbox("Select Model", model_options)
-                self.user_controls["GROQ_API_KEY"] = st.session_state["GROQ_API_KEY"]=st.text_input("API Key",type="password")
+                self.user_controls["GROQ_API_KEY"] = st.session_state["GROQ_API_KEY"] = st.text_input("GROQ API Key", type="password")
                 # Validate API key
                 if not self.user_controls["GROQ_API_KEY"]:
                     st.warning("⚠️ Please enter your GROQ API key to proceed. Don't have? refer : https://console.groq.com/keys ")
-            
-            ## USecase selection
-            self.user_controls["selected_usecase"]=st.selectbox("Select Usecases",usecase_options)
+
+            ## Usecase selection
+            self.user_controls["selected_usecase"] = st.selectbox("Select Usecases", usecase_options)
 
             if self.user_controls["selected_usecase"] == 'Chatbot With Web':
-                os.environ["TAVILY_API_KEY"]=self.user_controls["TAVILY_API_KEY"] = st.session_state["TAVILY_API_KEY"]=st.text_input("TAVILY API Key",type="password")
-            
-             # Validate API key
+                os.environ["TAVILY_API_KEY"] = self.user_controls["TAVILY_API_KEY"] = st.session_state["TAVILY_API_KEY"] = st.text_input("TAVILY API Key", type="password")
+                # Validate API key
                 if not self.user_controls["TAVILY_API_KEY"]:
                     st.warning("⚠️ Please enter your TAVILY API key to proceed. Don't have? refer : https://app.tavily.com/home ")
+
+            # LangSmith API Key input
+            os.environ["LANGSMITH_API_KEY"] = self.user_controls["LANGSMITH_API_KEY"] = st.session_state["LANGSMITH_API_KEY"] = st.text_input("LangSmith API Key", type="password")
+            if not self.user_controls["LANGSMITH_API_KEY"]:
+                st.warning("⚠️ Please enter your LangSmith API key to enable tracing and monitoring. Get your key at https://smith.langchain.com/")
 
             # Add Clear Chat button
             st.markdown("---")
