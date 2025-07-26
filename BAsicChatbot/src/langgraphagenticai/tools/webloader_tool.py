@@ -12,8 +12,13 @@ from dotenv import load_dotenv
 from docx import Document as DocxDocument
 from langsmith import traceable
 
-# Load environment variables from .env file
-load_dotenv()
+# Always prefer environment variables set by UI or cloud
+if "GROQ_API_KEY" in os.environ:
+    os.environ["GROQ_API_KEY"] = os.environ["GROQ_API_KEY"]
+if "TAVILY_API_KEY" in os.environ:
+    os.environ["TAVILY_API_KEY"] = os.environ["TAVILY_API_KEY"]
+if "LANGSMITH_API_KEY" in os.environ:
+    os.environ["LANGSMITH_API_KEY"] = os.environ["LANGSMITH_API_KEY"]
 
 
 class HimalayaSearchInput(BaseModel):

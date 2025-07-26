@@ -46,16 +46,15 @@ def test_basic_workflow():
         from src.langgraphagenticai.graph.graph_builder import GraphBuilder
         from src.langgraphagenticai.LLMS.groqllm import GroqLLM
         
-        # Mock user input
+        # Always prefer environment variable set by UI
+        groq_api_key = os.environ.get("GROQ_API_KEY", "")
         user_input = {
-            "GROQ_API_KEY": os.getenv("GROQ_API_KEY", ""),
+            "GROQ_API_KEY": groq_api_key,
             "selected_groq_model": "llama3-8b-8192"
         }
-        
         if not user_input["GROQ_API_KEY"]:
             print("❌ GROQ_API_KEY not found. Skipping workflow test.")
             return False
-        
         # Initialize LLM
         llm_config = GroqLLM(user_input)
         model = llm_config.get_llm_model()

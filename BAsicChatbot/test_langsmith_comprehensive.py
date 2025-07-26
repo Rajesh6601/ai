@@ -42,11 +42,12 @@ def test_graph_builder_tracing():
         from src.langgraphagenticai.LLMS.groqllm import GroqLLM
         
         # Mock user input for testing
+        # Always prefer environment variable set by UI
+        groq_api_key = os.environ.get("GROQ_API_KEY", "")
         user_input = {
-            "GROQ_API_KEY": os.getenv("GROQ_API_KEY", ""),
+            "GROQ_API_KEY": groq_api_key,
             "selected_groq_model": "llama3-8b-8192"
         }
-        
         # Initialize LLM
         llm_config = GroqLLM(user_input)
         model = llm_config.get_llm_model()

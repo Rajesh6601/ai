@@ -18,24 +18,20 @@ def setup_langsmith():
         "LANGCHAIN_PROJECT": "himalaya-enterprises-chatbot",
     }
     
-    # Get LangSmith API key from environment
-    langsmith_api_key = os.getenv("LANGSMITH_API_KEY")
-    
+    # Get LangSmith API key from environment (prefer UI/session)
+    langsmith_api_key = os.environ.get("LANGSMITH_API_KEY", "")
     if langsmith_api_key:
         langsmith_config["LANGCHAIN_API_KEY"] = langsmith_api_key
-        
         # Set environment variables
         for key, value in langsmith_config.items():
             os.environ[key] = value
-            
         print("✅ LangSmith tracing enabled")
         print(f"📊 Project: {langsmith_config['LANGCHAIN_PROJECT']}")
         print(f"🔗 Dashboard: https://smith.langchain.com/o/default/projects/p/{langsmith_config['LANGCHAIN_PROJECT']}")
-        
         return True
     else:
         print("⚠️  LangSmith API key not found in environment variables")
-        print("📝 Add LANGSMITH_API_KEY to your .env file to enable tracing")
+        print("📝 Add LANGSMITH_API_KEY in the UI or as an environment variable to enable tracing")
         return False
 
 def get_langsmith_config():
