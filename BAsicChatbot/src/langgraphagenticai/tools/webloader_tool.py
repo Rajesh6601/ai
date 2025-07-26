@@ -288,6 +288,7 @@ class HimalayaWebLoaderTool(BaseTool):
             print(f"Error getting LinkedIn posts info: {e}")
             return "Unable to access LinkedIn posts due to platform restrictions."
 
+    @traceable(name="_extract_pdf_content")
     def _extract_pdf_content(self, file_path):
         """Extract text content from a PDF file."""
         try:
