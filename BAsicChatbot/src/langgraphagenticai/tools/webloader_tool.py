@@ -388,16 +388,18 @@ class HimalayaWebLoaderTool(BaseTool):
             # Create embeddings
             embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
-            # Create vector store
+            # Create persistent vector store directory
+            persist_dir = os.path.join(os.path.dirname(__file__), "..", "chroma_db")
             self._vectorstore = Chroma.from_documents(
                 documents=doc_splits,
                 collection_name="himalaya-enterprises",
-                embedding=embeddings
+                embedding=embeddings,
+                persist_directory=persist_dir
             )
-
+            self._vectorstore.persist()
             # Create retriever
             self._retriever = self._vectorstore.as_retriever(search_kwargs={"k": 3})
-            print("Vector store initialized successfully!")
+            print(f"Vector store initialized and persisted at {persist_dir}!")
 
         except Exception as e:
             print(f"Error initializing Himalaya Enterprises vectorstore: {e}")
