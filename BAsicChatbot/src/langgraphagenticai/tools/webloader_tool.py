@@ -283,6 +283,21 @@ class HimalayaWebLoaderTool(BaseTool):
             print(f"Error getting LinkedIn posts info: {e}")
             return "Unable to access LinkedIn posts due to platform restrictions."
 
+    def _extract_pdf_content(self, file_path):
+        """Extract text content from a PDF file."""
+        try:
+            from PyPDF2 import PdfReader
+            reader = PdfReader(file_path)
+            text_content = []
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text_content.append(page_text.strip())
+            return "\n".join(text_content)
+        except Exception as e:
+            print(f"Error extracting content from PDF {file_path}: {e}")
+            return None
+
     def _initialize_vectorstore(self):
         """Initialize the vector store with Himalaya Enterprises content."""
         try:
@@ -294,21 +309,18 @@ class HimalayaWebLoaderTool(BaseTool):
                 "https://www.himalayaentp.com/index.php/projects/",
                 "https://www.linkedin.com/in/himalaya-enterprises-34a0141a9/"
             ]
-            
+
             all_texts = []
-            
+
             # Load web content
             for url in urls:
                 print(f"Loading content from: {url}")
-                
-                # Try custom text extraction first
                 text_content = self._extract_text_content(url)
                 if text_content and len(text_content.strip()) > 100:
                     print(f"Successfully extracted text content from {url}")
                     print(f"Sample content: {text_content[:200]}...")
                     all_texts.append({"page_content": text_content, "metadata": {"source": url}})
                 else:
-                    # Fallback to WebBaseLoader
                     print(f"Falling back to WebBaseLoader for {url}")
                     web_loader = WebBaseLoader(url)
                     data = web_loader.load()
@@ -316,8 +328,8 @@ class HimalayaWebLoaderTool(BaseTool):
                         print(f"Loaded {len(data)} documents from {url}")
                         print(f"Sample content: {data[0].page_content[:200]}...")
                         all_texts.extend([{"page_content": doc.page_content, "metadata": doc.metadata} for doc in data])
-            
-            # Load machines document
+
+            # Load machines document (docx)
             machines_doc_path = os.path.join(os.path.dirname(__file__), "..", "documents", "list-of-machines.docx")
             if os.path.exists(machines_doc_path):
                 print(f"Loading machines document from: {machines_doc_path}")
@@ -326,45 +338,62 @@ class HimalayaWebLoaderTool(BaseTool):
                     print(f"Successfully extracted machines content")
                     print(f"Sample content: {machines_content[:200]}...")
                     all_texts.append({
-                        "page_content": machines_content, 
+                        "page_content": machines_content,
                         "metadata": {"source": "machines_document", "type": "machines_list"}
                     })
                 else:
                     print("Failed to extract content from machines document")
             else:
                 print(f"Machines document not found at: {machines_doc_path}")
-            
+
+            # Load machines-instruments.pdf
+            machines_pdf_path = os.path.join(os.path.dirname(__file__), "..", "documents", "machines.pdf")
+            if os.path.exists(machines_pdf_path):
+                print(f"Loading machines PDF from: {machines_pdf_path}")
+                machines_pdf_content = self._extract_pdf_content(machines_pdf_path)
+                if machines_pdf_content:
+                    print(f"Successfully extracted machines PDF content")
+                    print(f"Sample content: {machines_pdf_content[:200]}...")
+                    all_texts.append({
+                        "page_content": machines_pdf_content,
+                        "metadata": {"source": "machines_pdf", "type": "machines_pdf"}
+                    })
+                else:
+                    print("Failed to extract content from machines PDF")
+            else:
+                print(f"Machines PDF not found at: {machines_pdf_path}")
+
             print(f"Total documents loaded: {len(all_texts)}")
-            
+
             if not all_texts:
                 raise Exception("No content could be loaded from any source")
-            
+
             # Create Document objects for text splitting
             from langchain.schema import Document
             documents = [Document(page_content=item["page_content"], metadata=item["metadata"]) for item in all_texts]
-            
+
             # Split the documents
             text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-                chunk_size=500, 
+                chunk_size=500,
                 chunk_overlap=50
             )
             doc_splits = text_splitter.split_documents(documents)
             print(f"Total document chunks after splitting: {len(doc_splits)}")
-            
+
             # Create embeddings
             embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-            
+
             # Create vector store
             self._vectorstore = Chroma.from_documents(
                 documents=doc_splits,
                 collection_name="himalaya-enterprises",
                 embedding=embeddings
             )
-            
+
             # Create retriever
             self._retriever = self._vectorstore.as_retriever(search_kwargs={"k": 3})
             print("Vector store initialized successfully!")
-            
+
         except Exception as e:
             print(f"Error initializing Himalaya Enterprises vectorstore: {e}")
             import traceback
