@@ -352,6 +352,34 @@ class HimalayaWebLoaderTool(BaseTool):
             else:
                 print(f"Machines document not found at: {machines_doc_path}")
 
+            # Load calibration-instruments.xlsx
+            calibration_xlsx_path = os.path.join(os.path.dirname(__file__), "..", "documents", "calibration-instruments.xlsx")
+            if os.path.exists(calibration_xlsx_path):
+                print(f"Loading calibration instruments Excel from: {calibration_xlsx_path}")
+                try:
+                    import pandas as pd
+                    df = pd.read_excel(calibration_xlsx_path)
+                    # Convert each row to a readable string
+                    excel_texts = []
+                    for idx, row in df.iterrows():
+                        row_str = " | ".join([f"{col}: {row[col]}" for col in df.columns if pd.notnull(row[col])])
+                        if row_str:
+                            excel_texts.append(row_str)
+                    excel_content = "\n".join(excel_texts)
+                    if excel_content:
+                        print(f"Successfully extracted calibration instruments Excel content")
+                        print(f"Sample content: {excel_content[:200]}...")
+                        all_texts.append({
+                            "page_content": excel_content,
+                            "metadata": {"source": "calibration_instruments_excel", "type": "calibration_instruments"}
+                        })
+                    else:
+                        print("No content extracted from calibration instruments Excel")
+                except Exception as e:
+                    print(f"Error extracting content from calibration instruments Excel: {e}")
+            else:
+                print(f"Calibration instruments Excel not found at: {calibration_xlsx_path}")
+
             # Load machines-instruments.pdf
             machines_pdf_path = os.path.join(os.path.dirname(__file__), "..", "documents", "machines.pdf")
             if os.path.exists(machines_pdf_path):
@@ -423,20 +451,19 @@ class HimalayaWebLoaderTool(BaseTool):
             # Check if this is a machines query
             machine_keywords = ['machine', 'machinery', 'equipment', 'list of machines', 'machine names', 
                               'machine description', 'quantity', 'machines used', 'equipment list']
-            
+            calibration_keywords = ['calibration', 'instrument', 'report number', 'range', 'due date', 'calibration-instruments', 'calibration instruments', 'calibration excel', 'calibration-instruments.xlsx']
+
             query_lower = query.lower()
             is_linkedin_post_query = any(keyword in query_lower for keyword in linkedin_post_keywords)
             is_machine_query = any(keyword in query_lower for keyword in machine_keywords)
-            
+            is_calibration_query = any(keyword in query_lower for keyword in calibration_keywords)
+
+            docs = self._retriever.invoke(query)
+
             if is_linkedin_post_query:
-                # Try to get fresh LinkedIn posts information
                 linkedin_url = "https://www.linkedin.com/in/himalaya-enterprises-34a0141a9/"
                 posts_info = self._get_linkedin_posts_info(linkedin_url)
-                
-                # Also get regular retrieval results for context
-                docs = self._retriever.invoke(query)
                 combined_content = "\n\n".join([doc.page_content for doc in docs]) if docs else ""
-                
                 return f"""Based on Himalaya Enterprises LinkedIn information:
 
 {posts_info}
@@ -445,43 +472,44 @@ Additional Context:
 {combined_content}
 
 Note: For the most current LinkedIn posts, please visit the profile directly at: {linkedin_url}"""
-            
+
+            elif is_calibration_query:
+                # Enhanced retrieval for calibration instruments queries
+                calibration_docs = [doc for doc in docs if 'calibration' in doc.metadata.get('type', '').lower() or 
+                                   any(keyword in doc.page_content.lower() for keyword in calibration_keywords)]
+                if calibration_docs:
+                    calibration_content = "\n\n".join([doc.page_content for doc in calibration_docs])
+                    other_content = "\n\n".join([doc.page_content for doc in docs if doc not in calibration_docs])
+                    result = f"Based on calibration instruments Excel information:\n\n{calibration_content}"
+                    if other_content:
+                        result += f"\n\nAdditional related information:\n\n{other_content}"
+                    return result
+                else:
+                    combined_content = "\n\n".join([doc.page_content for doc in docs])
+                    return f"Based on Himalaya Enterprises information:\n\n{combined_content}"
+
             elif is_machine_query:
-                # Enhanced retrieval for machine queries
-                docs = self._retriever.invoke(query)
-                
                 if not docs:
                     return "No machine information found for your query."
-                
-                # Filter for machine-related content
                 machine_docs = [doc for doc in docs if 'machines' in doc.metadata.get('type', '').lower() or 
                                any(keyword in doc.page_content.lower() for keyword in machine_keywords)]
-                
                 if machine_docs:
                     machine_content = "\n\n".join([doc.page_content for doc in machine_docs])
                     other_content = "\n\n".join([doc.page_content for doc in docs if doc not in machine_docs])
-                    
                     result = f"Based on Himalaya Enterprises machinery information:\n\n{machine_content}"
                     if other_content:
                         result += f"\n\nAdditional related information:\n\n{other_content}"
                     return result
                 else:
-                    # Regular retrieval if no specific machine content found
                     combined_content = "\n\n".join([doc.page_content for doc in docs])
                     return f"Based on Himalaya Enterprises information:\n\n{combined_content}"
-            
+
             else:
-                # Regular retrieval for non-posts and non-machine queries
-                docs = self._retriever.invoke(query)
-                
                 if not docs:
                     return "No relevant information found about Himalaya Enterprises for your query."
-                
-                # Combine the retrieved content
                 combined_content = "\n\n".join([doc.page_content for doc in docs])
-                
                 return f"Based on Himalaya Enterprises official information:\n\n{combined_content}"
-            
+
         except Exception as e:
             return f"Error searching Himalaya Enterprises information: {str(e)}"
     
