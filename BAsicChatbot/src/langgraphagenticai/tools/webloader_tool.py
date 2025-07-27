@@ -417,18 +417,15 @@ class HimalayaWebLoaderTool(BaseTool):
             # Create embeddings
             embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
-            # Create persistent vector store directory
-            persist_dir = os.path.join(os.path.dirname(__file__), "..", "chroma_db")
+            # Always rebuild vector store in memory (no persistence)
             self._vectorstore = Chroma.from_documents(
                 documents=doc_splits,
                 collection_name="himalaya-enterprises",
-                embedding=embeddings,
-                persist_directory=persist_dir
+                embedding=embeddings
             )
-            self._vectorstore.persist()
             # Create retriever
             self._retriever = self._vectorstore.as_retriever(search_kwargs={"k": 3})
-            print(f"Vector store initialized and persisted at {persist_dir}!")
+            print("Vector store initialized in memory (rebuilds on every startup)!")
 
         except Exception as e:
             print(f"Error initializing Himalaya Enterprises vectorstore: {e}")
