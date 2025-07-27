@@ -352,20 +352,25 @@ class HimalayaWebLoaderTool(BaseTool):
             else:
                 print(f"Machines document not found at: {machines_doc_path}")
 
-            # Load calibration-instruments.xlsx
+            # Load calibration-instruments.xlsx with LangSmith tracing
             calibration_xlsx_path = os.path.join(os.path.dirname(__file__), "..", "documents", "calibration-instruments.xlsx")
             if os.path.exists(calibration_xlsx_path):
                 print(f"Loading calibration instruments Excel from: {calibration_xlsx_path}")
                 try:
                     import pandas as pd
-                    df = pd.read_excel(calibration_xlsx_path)
-                    # Convert each row to a readable string
-                    excel_texts = []
-                    for idx, row in df.iterrows():
-                        row_str = " | ".join([f"{col}: {row[col]}" for col in df.columns if pd.notnull(row[col])])
-                        if row_str:
-                            excel_texts.append(row_str)
-                    excel_content = "\n".join(excel_texts)
+                    from langsmith import traceable
+
+                    @traceable(name="extract_calibration_excel_content")
+                    def extract_calibration_excel_content(file_path):
+                        df = pd.read_excel(file_path)
+                        excel_texts = []
+                        for idx, row in df.iterrows():
+                            row_str = " | ".join([f"{col}: {row[col]}" for col in df.columns if pd.notnull(row[col])])
+                            if row_str:
+                                excel_texts.append(row_str)
+                        return "\n".join(excel_texts)
+
+                    excel_content = extract_calibration_excel_content(calibration_xlsx_path)
                     if excel_content:
                         print(f"Successfully extracted calibration instruments Excel content")
                         print(f"Sample content: {excel_content[:200]}...")
