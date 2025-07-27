@@ -15,3 +15,4 @@ pypdf
 python-dotenv
 python-docx
 langsmith
+openpyxl
